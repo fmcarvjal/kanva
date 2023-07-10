@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Stage, Layer, Image, Line } from 'react-konva';
 import './App.css';
 
@@ -25,8 +25,46 @@ const App = () => {
   const [brushColor, setBrushColor] = useState('#000000');
   const [brushSize, setBrushSize] = useState(3);
   const [draggableImages, setDraggableImages] = useState(true);
+  const stageRef = useRef(null);
   const isDrawing = useRef(false);
   const linePoints = useRef([]);
+
+  useEffect(() => {
+    const handleMouseDown = () => {
+      isDrawing.current = true;
+      const stage = stageRef.current;
+      const pointerPos = stage.getPointerPosition();
+      if (pointerPos) {
+        linePoints.current = [pointerPos.x, pointerPos.y];
+      }
+    };
+
+    const handleMouseMove = () => {
+      if (!isDrawing.current) return;
+      const stage = stageRef.current;
+      const pointerPos = stage.getPointerPosition();
+      if (pointerPos) {
+        const newPoints = [...linePoints.current, pointerPos.x, pointerPos.y];
+        setLines([...lines, { points: newPoints, color: brushColor, size: brushSize }]);
+        linePoints.current = newPoints;
+      }
+    };
+
+    const handleMouseUp = () => {
+      isDrawing.current = false;
+      setUndoHistory([]);
+    };
+
+    window.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [lines, brushColor, brushSize]);
 
   const handleDrop = (e) => {
     e.preventDefault();
@@ -44,45 +82,6 @@ const App = () => {
 
   const handleDragOver = (e) => {
     e.preventDefault();
-  };
-
-  const handleMouseDown = (e) => {
-    isDrawing.current = true;
-    const { offsetX, offsetY } = e.evt;
-    linePoints.current = [offsetX, offsetY];
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDrawing.current) return;
-    const { offsetX, offsetY } = e.evt;
-    const newPoints = [...linePoints.current, offsetX, offsetY];
-    setLines([...lines, { points: newPoints, color: brushColor, size: brushSize }]);
-    linePoints.current = newPoints;
-  };
-
-  const handleMouseUp = () => {
-    isDrawing.current = false;
-    setUndoHistory([]);
-  };
-
-  const handleTouchStart = (e) => {
-    isDrawing.current = true;
-    const { offsetX, offsetY } = e.evt.targetTouches[0];
-    linePoints.current = [offsetX, offsetY];
-  };
-
-  const handleTouchMove = (e) => {
-    e.preventDefault();
-    if (!isDrawing.current) return;
-    const { offsetX, offsetY } = e.evt.targetTouches[0];
-    const newPoints = [...linePoints.current, offsetX, offsetY];
-    setLines([...lines, { points: newPoints, color: brushColor, size: brushSize }]);
-    linePoints.current = newPoints;
-  };
-
-  const handleTouchEnd = () => {
-    isDrawing.current = false;
-    setUndoHistory([]);
   };
 
   const handleUndo = () => {
@@ -160,12 +159,7 @@ const App = () => {
       <Stage
         width={window.innerWidth}
         height={window.innerHeight}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
+        ref={stageRef}
       >
         <Layer>
           {images.map((img, index) => (
