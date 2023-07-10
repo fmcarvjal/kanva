@@ -3,17 +3,17 @@ import { Stage, Layer, Image, Line } from 'react-konva';
 import './App.css';
 
 const COLORS = [
-  '#000000', // Black
-  '#FF0000', // Red
-  '#00FF00', // Green
-  '#0000FF', // Blue
-  '#FFFF00', // Yellow
-  '#800080', // Purple
-  '#FFA500', // Orange
-  '#FFC0CB', // Pink
-  '#808080', // Gray
-  '#A52A2A', // Brown
-  '#00FFFF', // Cyan
+  '#000000', // Negro
+  '#FF0000', // Rojo
+  '#00FF00', // Verde
+  '#0000FF', // Azul
+  '#FFFF00', // Amarillo
+  '#800080', // Morado
+  '#FFA500', // Naranja
+  '#FFC0CB', // Rosa
+  '#808080', // Gris
+  '#A52A2A', // Marrón
+  '#00FFFF', // Cian
   '#FF00FF', // Magenta
   '#FF00Fd'  // Magenta
 ];
@@ -61,6 +61,26 @@ const App = () => {
   };
 
   const handleMouseUp = () => {
+    isDrawing.current = false;
+    setUndoHistory([]);
+  };
+
+  const handleTouchStart = (e) => {
+    isDrawing.current = true;
+    const { offsetX, offsetY } = e.evt.targetTouches[0];
+    linePoints.current = [offsetX, offsetY];
+  };
+
+  const handleTouchMove = (e) => {
+    e.preventDefault();
+    if (!isDrawing.current) return;
+    const { offsetX, offsetY } = e.evt.targetTouches[0];
+    const newPoints = [...linePoints.current, offsetX, offsetY];
+    setLines([...lines, { points: newPoints, color: brushColor, size: brushSize }]);
+    linePoints.current = newPoints;
+  };
+
+  const handleTouchEnd = () => {
     isDrawing.current = false;
     setUndoHistory([]);
   };
@@ -122,12 +142,12 @@ const App = () => {
         <button onClick={handleDelete}>DELETE</button>
         <button onClick={handleRedo}>REDO</button>
         <button onClick={handleToggleDraggable}>
-          {draggableImages ? 'Disable Drag' : 'Enable Drag'}
+          {draggableImages ? 'Desactivar Arrastrar' : 'Activar Arrastrar'}
         </button>
       </div>
       <div>
         <div className="color-palette">{renderColorPalette()}</div>
-        <label htmlFor="brush-size">Size:</label>
+        <label htmlFor="brush-size">Tamaño:</label>
         <input
           type="range"
           id="brush-size"
@@ -140,6 +160,9 @@ const App = () => {
       <Stage
         width={window.innerWidth}
         height={window.innerHeight}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
