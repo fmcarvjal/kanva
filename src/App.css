@@ -1,0 +1,17 @@
+.color-palette {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.color-option {
+  width: 30px;
+  height: 30px;
+  margin: 5px;
+  cursor: pointer;
+}
+
+.color-option.selected {
+  border: 2px solid #000;
+}
