@@ -25,6 +25,7 @@ const App = () => {
   const [brushColor, setBrushColor] = useState('#000000');
   const [brushSize, setBrushSize] = useState(3);
   const [draggableImages, setDraggableImages] = useState(true);
+  const [imageSize, setImageSize] = useState(200); // Nuevo estado para el tamaño de las imágenes
   const isDrawing = useRef(false);
   const linePoints = useRef([]);
 
@@ -111,6 +112,10 @@ const App = () => {
     });
   };
 
+  const handleImageSizeChange = (e) => {
+    setImageSize(Number(e.target.value));
+  };
+
   const renderColorPalette = () => {
     return COLORS.map((color) => (
       <div
@@ -144,6 +149,16 @@ const App = () => {
           value={brushSize}
           onChange={handleBrushSizeChange}
         />
+        <label htmlFor="image-size">Image Size:</label>
+        <input
+          type="range"
+          id="image-size"
+          min={100}
+          max={1800}
+          step={10}
+          value={imageSize}
+          onChange={handleImageSizeChange}
+        />
       </div>
       <Stage
         width={window.innerWidth}
@@ -161,8 +176,8 @@ const App = () => {
               //onClick={() => handleDeleteImage(index)}
               onDblClick={() => handleDeleteImage(index)}
               onTap={() => handleDeleteImage(index)}
-              width={200}
-              height={200}
+              width={imageSize}
+              height={imageSize}
             />
           ))}
           {lines.map((line, index) => (
